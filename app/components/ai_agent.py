@@ -12,7 +12,7 @@ def get_response_from_ai_agents(llm_id, query,allow_search,system_prompt):
     agent = create_react_agent(
         model=llm,
         tools=tools,
-        prompt=system_prompt  # ← change state_modifier to prompt
+        prompt=system_prompt  
     )
 
 
