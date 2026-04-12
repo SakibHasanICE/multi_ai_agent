@@ -23,7 +23,7 @@ def run_backend():
 def run_frontend():
     try:
         logger.info("starting frontend service")
-        subprocess,run(["streamlit","run","app/frontend/ui.py"],check=True)
+        subprocess.run(["streamlit","run","app/frontend/ui.py"],check=True)
 
     except CustomException as e:
         logger.error("problem with frontend service")
@@ -31,9 +31,9 @@ def run_frontend():
     
 if __name__=="__main__":
     try:
-        threading.Thread(targetr=run_backend).start()
+        threading.Thread(target=run_backend).start()
         time.sleep(2)
-        run_frontend
+        run_frontend()
     except CustomException as e:
         logger.exception(f"cusomexception occured :{str(e)}")
 

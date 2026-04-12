@@ -27,9 +27,9 @@ def chat_endpoint(request:RequestState):
     try:
         response=get_response_from_ai_agents(
             request.model_name,
-            request.system_prompt,
             request.messages,
-            request.allow_search
+            request.allow_search,
+            request.system_prompt
             
         )   
 
@@ -39,8 +39,9 @@ def chat_endpoint(request:RequestState):
         logger.error("Some error occured during response generate")
         raise HTTPException(
             status_code=500, 
+            detail=str(e)
                              
-            detail=str(CustomException("Failed to get AI response",error_detail=e))
+            # detail=str(CustomException("Failed to get AI response",error_detail=e))
             
             )
 
