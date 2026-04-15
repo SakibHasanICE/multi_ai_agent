@@ -1,64 +1,74 @@
-pipeline {
+pipeline{
     agent any
 
-    // environment {
-    //     AWS_REGION = 'us-east-1'
-    //     ECR_REPO = 'my-repo'
-    //     IMAGE_TAG = 'latest'
-    //     SERVICE_NAME = 'llmops-medical-service'
-    // }
+    environment {
+        SONAR_PROJECT_KEY = 'MULTI_AI_AGENTS'
+		SONAR_SCANNER_HOME = tool 'sonarqube'
+        // AWS_REGION = 'us-east-1'
+        // ECR_REPO = 'my-repo'
+        // IMAGE_TAG = 'latest'
+	}
 
-    stages {
-        stage('Clone GitHub Repo') {
-            steps {
-                script {
-                    echo 'Cloning GitHub repo to Jenkins...'
-                    checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[credentialsId: 'github_token', url: 'https://github.com/SakibHasanICE/multi_ai_agent.git']])
+    stages{
+        stage('Cloning Github repo to Jenkins'){
+            steps{
+                script{
+                    echo 'Cloning Github repo to Jenkins............'
+                    checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[credentialsId: 'github-token', url: 'https://github.com/data-guru0/MULTI-AI-AGENT-PROJECTS.git']])
                 }
             }
         }
 
-        // stage('Build, Scan, and Push Docker Image to ECR') {
-        //     steps {
-        //         withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-token']]) {
-        //             script {
-        //                 def accountId = sh(script: "aws sts get-caller-identity --query Account --output text", returnStdout: true).trim()
-        //                 def ecrUrl = "${accountId}.dkr.ecr.${env.AWS_REGION}.amazonaws.com/${env.ECR_REPO}"
-        //                 def imageFullTag = "${ecrUrl}:${IMAGE_TAG}"
+    stage('SonarQube Analysis'){
+			steps {
+				withCredentials([string(credentialsId: 'sonarqube-token', variable: 'SONAR_TOKEN')]) {
+    					
+					withSonarQubeEnv('sonarqube') {
+    						sh """
+						${SONAR_SCANNER_HOME}/bin/sonar-scanner \
+						-Dsonar.projectKey=${SONAR_PROJECT_KEY} \
+						-Dsonar.sources=. \
+						-Dsonar.host.url=http://sonarqube-dind:9000 \
+						-Dsonar.login=${SONAR_TOKEN}
+						"""
+					}
+				}
+			}
+		}
 
-        //                 sh """
-        //                 aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ecrUrl}
-        //                 docker build -t ${env.ECR_REPO}:${IMAGE_TAG} .
-        //                 trivy image --severity HIGH,CRITICAL --format json -o trivy-report.json ${env.ECR_REPO}:${IMAGE_TAG} || true
-        //                 docker tag ${env.ECR_REPO}:${IMAGE_TAG} ${imageFullTag}
-        //                 docker push ${imageFullTag}
-        //                 """
+    // stage('Build and Push Docker Image to ECR') {
+    //         steps {
+    //             withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-token']]) {
+    //                 script {
+    //                     def accountId = sh(script: "aws sts get-caller-identity --query Account --output text", returnStdout: true).trim()
+    //                     def ecrUrl = "${accountId}.dkr.ecr.${env.AWS_REGION}.amazonaws.com/${env.ECR_REPO}"
 
-        //                 archiveArtifacts artifacts: 'trivy-report.json', allowEmptyArchive: true
-        //             }
-        //         }
-        //     }
-        // }
+    //                     sh """
+    //                     aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ecrUrl}
+    //                     docker build -t ${env.ECR_REPO}:${IMAGE_TAG} .
+    //                     docker tag ${env.ECR_REPO}:${IMAGE_TAG} ${ecrUrl}:${IMAGE_TAG}
+    //                     docker push ${ecrUrl}:${IMAGE_TAG}
+    //                     """
+    //                 }
+    //             }
+    //         }
+    //     }
 
-        //  stage('Deploy to AWS App Runner') {
-        //     steps {
-        //         withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-token']]) {
-        //             script {
-        //                 def accountId = sh(script: "aws sts get-caller-identity --query Account --output text", returnStdout: true).trim()
-        //                 def ecrUrl = "${accountId}.dkr.ecr.${env.AWS_REGION}.amazonaws.com/${env.ECR_REPO}"
-        //                 def imageFullTag = "${ecrUrl}:${IMAGE_TAG}"
-
-        //                 echo "Triggering deployment to AWS App Runner..."
-
-        //                 sh """
-        //                 SERVICE_ARN=\$(aws apprunner list-services --query "ServiceSummaryList[?ServiceName=='${SERVICE_NAME}'].ServiceArn" --output text --region ${AWS_REGION})
-        //                 echo "Found App Runner Service ARN: \$SERVICE_ARN"
-
-        //                 aws apprunner start-deployment --service-arn \$SERVICE_ARN --region ${AWS_REGION}
-        //                 """
-        //             }
-        //         }
-        //     }
-        // }
+    //     stage('Deploy to ECS Fargate') {
+    // steps {
+    //     withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-token']]) {
+    //         script {
+    //             sh """
+    //             aws ecs update-service \
+    //               --cluster multi-ai-agent-cluster \
+    //               --service multi-ai-agent-def-service-shqlo39p  \
+    //               --force-new-deployment \
+    //               --region ${AWS_REGION}
+    //             """
+    //             }
+    //         }
+    //     }
+    //  }
+        
     }
 }
