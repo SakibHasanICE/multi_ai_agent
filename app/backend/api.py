@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import List
 from app.components.ai_agent import get_response_from_ai_agents
+import traceback
 
 from app.config.settings import settings
 
@@ -17,6 +18,9 @@ class RequestState(BaseModel):
     system_prompt:str
     messages:List[str]
     allow_search:bool
+
+
+
 
 @app.post("/chat")
 def chat_endpoint(request:RequestState):
@@ -36,6 +40,7 @@ def chat_endpoint(request:RequestState):
         logger.info(f"Successfully got response from AI Agent{request.model_name}")
         return { "response":response }
     except Exception as e:
+        print(traceback.format_exc()) 
         logger.error("Some error occured during response generate")
         raise HTTPException(
             status_code=500, 
