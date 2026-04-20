@@ -13,7 +13,7 @@ load_dotenv()
 def run_backend():
     try:
         logger.info("startung backend service..")
-        subprocess.run(["uvicorn","app.backend.api:app","--host","127.0.0.1","--port","9999"],check=True)
+        subprocess.run(["uvicorn","app.backend.api:app","--host","0.0.0.0","--port","9999"],check=True)
     
     except CustomException as e:
         logger.error("problem with backend service")
