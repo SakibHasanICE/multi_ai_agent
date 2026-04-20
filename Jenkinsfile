@@ -61,7 +61,7 @@ pipeline{
                 sh """
                 aws ecs update-service \
                   --cluster multi-ai-agent-cluster \
-                  --service multi-ai-agent-def-service-1a2atuxd  \
+                  --service multi-agentic-ai-def-service-7egvosft  \
                   --force-new-deployment \
                   --region ${AWS_REGION}
                 """
