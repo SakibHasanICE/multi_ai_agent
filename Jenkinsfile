@@ -3,11 +3,11 @@ pipeline{
 
     environment {
         SONAR_PROJECT_KEY = 'MULTI_AI_AGENTS'
-		SONAR_SCANNER_HOME = tool 'sonarqube'
+        SONAR_SCANNER_HOME = tool 'sonarqube'
         AWS_REGION = 'eu-north-1'
         ECR_REPO = 'my-repo'
         IMAGE_TAG = 'latest'
-	}
+    }
 
     stages{
         stage('Cloning Github repo to Jenkins'){
@@ -19,24 +19,23 @@ pipeline{
             }
         }
 
-    stage('SonarQube Analysis'){
-			steps {
-				withCredentials([string(credentialsId: 'sonarqube-token', variable: 'SONAR_TOKEN')]) {
-    					
-					withSonarQubeEnv('sonarqube') {
-    						sh """
-						${SONAR_SCANNER_HOME}/bin/sonar-scanner \
-						-Dsonar.projectKey=${SONAR_PROJECT_KEY} \
-						-Dsonar.sources=. \
-						-Dsonar.host.url=http://sonarqube-dind:9000 \
-						-Dsonar.login=${SONAR_TOKEN}
-						"""
-					}
-				}
-			}
-		}
+        stage('SonarQube Analysis'){
+            steps {
+                withCredentials([string(credentialsId: 'sonarqube-token', variable: 'SONAR_TOKEN')]) {
+                    withSonarQubeEnv('sonarqube') {
+                        sh """
+                        ${SONAR_SCANNER_HOME}/bin/sonar-scanner \
+                        -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
+                        -Dsonar.sources=. \
+                        -Dsonar.host.url=http://sonarqube-dind:9000 \
+                        -Dsonar.login=${SONAR_TOKEN}
+                        """
+                    }
+                }
+            }
+        }
 
-    stage('Build and Push Docker Image to ECR') {
+        stage('Build and Push Docker Image to ECR') {
             steps {
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-token']]) {
                     script {
@@ -45,7 +44,7 @@ pipeline{
 
                         sh """
                         aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ecrUrl}
-                        docker build -t ${env.ECR_REPO}:${IMAGE_TAG} .
+                        docker build --no-cache -t ${env.ECR_REPO}:${IMAGE_TAG} .
                         docker tag ${env.ECR_REPO}:${IMAGE_TAG} ${ecrUrl}:${IMAGE_TAG}
                         docker push ${ecrUrl}:${IMAGE_TAG}
                         """
@@ -55,20 +54,20 @@ pipeline{
         }
 
         stage('Deploy to ECS Fargate') {
-    steps {
-        withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-token']]) {
-            script {
-                sh """
-                aws ecs update-service \
-                  --cluster multi-ai-agent-cluster \
-                  --service multi-agentic-ai-def-service-7egvosft  \
-                  --force-new-deployment \
-                  --region ${AWS_REGION}
-                """
+            steps {
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-token']]) {
+                    script {
+                        sh """
+                        aws ecs update-service \
+                          --cluster multi-ai-agent-cluster \
+                          --service multi-agentic-ai-def-service-7egvosft \
+                          --force-new-deployment \
+                          --region ${AWS_REGION}
+                        """
+                    }
                 }
             }
         }
-     }
-        
+
     }
 }
