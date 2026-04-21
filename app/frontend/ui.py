@@ -17,7 +17,7 @@ allow_web_search = st.checkbox("Allow web search")
 
 user_query = st.text_area("Enter your query : ", height=150)
 
-API_URL = "http://127.0.0.1:9999/chat"
+API_URL = "http://0.0.0.0:9999/chat"
 
 if st.button("Ask Agent") and user_query.strip():
 
