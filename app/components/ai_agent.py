@@ -1,12 +1,12 @@
 from langchain_groq import ChatGroq
-from langchain_tavily import TavilySearch
+from langchain_community.tools.tavily_search import TavilySearchResults
 from langgraph.prebuilt import create_react_agent
 from langchain_core.messages import AIMessage
 from app.config.settings import settings
 
 def get_response_from_ai_agents(llm_id, query, allow_search, system_prompt):
     llm = ChatGroq(model=llm_id, api_key=settings.GROQ_API_KEY)
-    tools = [TavilySearch(max_results=2, api_key=settings.TAVILY_API_KEY)] if allow_search else []
+    tools = [TavilySearchResults(max_results=2, api_key=settings.TAVILY_API_KEY)] if allow_search else []
 
     agent = create_react_agent(
         model=llm,
