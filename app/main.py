@@ -28,7 +28,7 @@ def run_frontend():
 if __name__=="__main__":
     try:
         threading.Thread(target=run_backend).start()
-        time.sleep(2)
+        time.sleep(5)
         run_frontend()
     
     except CustomException as e:
